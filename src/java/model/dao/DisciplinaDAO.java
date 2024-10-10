@@ -63,8 +63,7 @@ public class DisciplinaDAO {
         }
         return lista; // Retorna a lista de disciplinas
     }
-    
-    
+
     public Disciplina lerDisciplina() { // Método que retorna uma lista de objetos Disciplina
         Disciplina dis = new Disciplina(); // Cria uma nova lista para armazenar as disciplinas
         try {
@@ -99,20 +98,20 @@ public class DisciplinaDAO {
                 dis.setArea(area);
 
             }
-            
+
         } catch (SQLException e) { // Captura qualquer SQLException que possa ocorrer durante a execução
             e.printStackTrace(); // Imprime a pilha de erros para diagnóstico
         }
         return dis; // Retorna a lista de disciplinas
     }
 
-    public Disciplina disciplinaEspecifica(int id){
+    public Disciplina disciplinaEspecifica(int id) {
         Disciplina dis = new Disciplina();
-        try{
+        try {
             Connection conexao = Conexao.conectar();
             PreparedStatement stmt = null;
             ResultSet rs = null;
-           
+
             stmt = conexao.prepareStatement("SELECT dis.id_disciplina, dis.nome_disciplina,\n"
                     + "area.id_area AS id_area, area.nome AS nome_area,\n"
                     + "area.descricao AS descricao_area\n"
@@ -120,9 +119,9 @@ public class DisciplinaDAO {
                     + "INNER JOIN area ON dis.fk_id_area = area.id_area "
                     + "WHERE dis.id_disciplina = ?");
             stmt.setInt(1, id);
-           
+
             rs = stmt.executeQuery();
-           
+
             if (rs.next()) {
 
                 // Preenche os atributos da disciplina com os dados retornados da consulta
@@ -131,23 +130,59 @@ public class DisciplinaDAO {
 
                 // Início do objeto Area
                 Area area = new Area(); // Cria uma nova instância de Area
-                area.setId(rs.getInt("id")); // Define o ID da área
+                area.setId(rs.getInt("id_area")); // Define o ID da área
                 area.setNome(rs.getString("nome")); // Define o nome da área
-                area.setDescricao(rs.getString("descricao_area")); // Define a descrição da área
+                area.setDescricao(rs.getString("descricao")); // Define a descrição da área
 
                 // Associa a área ao objeto disciplina
                 dis.setArea(area);
 
             }
-           
+
             rs.close();
             stmt.close();
             conexao.close();
-           
-        }catch(SQLException e){
+
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return dis;
-       
+
     }
+
+    public List<Disciplina> lerDisciplinaProfessores(int id_professores) {
+        List<Disciplina> lista = new ArrayList();
+        try {
+            Connection conn = Conexao.conectar();
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+
+            stmt = conn.prepareStatement("SELECT d.id_disciplina, d.nome_disciplina, a.id_area, a.nome, "
+                    + "a.descricao from disciplina AS d INNER JOIN professor_disciplina AS pd ON \n"
+                    + "pd.fk_id_disciplina = d.id_disciplina INNER JOIN area AS a ON a.id_area = d.fk_id_area WHERE pd.fk_id_professor = ?");
+            stmt.setInt(1, id_professores);
+
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Disciplina dis = new Disciplina();
+
+                dis.setId_disciplina(rs.getInt("id_disciplina"));
+                dis.setNome_disciplina(rs.getString("nome_disciplina"));
+
+                Area area = new Area();
+                area.setId(rs.getInt("id_area"));
+                area.setNome(rs.getString("nome"));
+                area.setDescricao(rs.getString("descricao"));
+
+                dis.setArea(area);
+
+                lista.add(dis);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
 }
